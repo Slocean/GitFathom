@@ -1,4 +1,4 @@
-import { PromptPayload, ChangeSnapshot, ExtensionConfig } from "./types";
+import { ChangeSnapshot, ExtensionConfig, PromptPayload } from "./types";
 
 export function buildPrompt(snapshot: ChangeSnapshot, config: ExtensionConfig): PromptPayload {
   const sections: string[] = [];
@@ -8,6 +8,12 @@ export function buildPrompt(snapshot: ChangeSnapshot, config: ExtensionConfig): 
 
   if (config.additionalRules.trim()) {
     sections.push(`Additional rules:\n${config.additionalRules.trim()}`);
+  }
+
+  if (config.language === "zh") {
+    sections.push("Language requirement: Output must be in Simplified Chinese.");
+  } else {
+    sections.push("Language requirement: Output must be in English.");
   }
 
   sections.push("Output constraints:\n- Return a single line only\n- Do not use markdown\n- Do not wrap in quotes");

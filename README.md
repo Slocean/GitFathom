@@ -4,20 +4,22 @@ A lightweight VS Code extension that generates git commit messages from reposito
 
 ## Features
 
-- Adds **AI: Generate Commit Message** button to the Git Source Control title bar.
-- Generates a commit message from staged/unstaged changes.
-- Supports multiple providers:
+- Adds two buttons in Git Source Control title area:
+  - `Open Setup Wizard`
+  - `AI: Generate Commit Message`
+- Supports providers:
   - OpenAI
   - DeepSeek
   - Gemini
   - Kimi (Moonshot)
   - GLM (Zhipu)
-  - Custom OpenAI-compatible providers (third-party gateways and base URLs)
-- Configurable generation rules with a practical default template.
-- Compatibility layer for third-party AI vendors:
-  - custom base URL
-  - custom OpenAI-compatible request path
-  - optional extra headers (JSON)
+  - Custom OpenAI-compatible providers
+- Supports third-party gateways/proxies:
+  - custom `baseUrl`
+  - custom request path
+  - extra headers JSON
+- Built-in setup wizard to configure language, provider, model, API key, base URL, request path, and headers.
+- Supports language switch (`zh` / `en`) for UI and commit output language.
 - Performance-focused defaults:
   - bounded git diff size (`maxDiffBytes`)
   - command and request timeouts
@@ -37,28 +39,26 @@ A lightweight VS Code extension that generates git commit messages from reposito
    npm run compile
    ```
 
-3. Press `F5` in VS Code to launch the Extension Development Host.
+3. Press `F5` to launch the Extension Development Host.
 
-## Usage
+## Quick Start
 
-1. Open a git repository in VS Code.
-2. Make changes (staged or unstaged).
-3. In Source Control view, click **AI: Generate Commit Message**.
-4. The generated message is placed into the SCM input box.
+1. Press `F1` -> run `AutoGit LLM: Open Setup Wizard`.
+2. Select language, provider, and model.
+3. Configure API key / base URL / headers if needed.
+4. Open a git repository, then click `AI: Generate Commit Message` in Source Control.
 
-## Key Settings
+## Important Settings
 
+- `autogitllm.language`: `zh | en`
 - `autogitllm.provider`: `openai | deepseek | gemini | kimi | glm | custom`
-- `autogitllm.model`: model name (empty = provider default)
-- `autogitllm.apiKey`: provider API key
-- `autogitllm.baseUrl`: optional custom base URL
-- `autogitllm.customRequestPath`: custom OpenAI-compatible path (default `/chat/completions`)
-- `autogitllm.extraHeaders`: JSON map for additional request headers
-- `autogitllm.includeOnlyStaged`: include only staged changes
-- `autogitllm.maxDiffBytes`: diff byte budget for prompt payload
-- `autogitllm.ruleTemplate`: main rule template
-- `autogitllm.additionalRules`: extra custom rules appended to prompt
-- `autogitllm.copyToClipboard`: copy generated message to clipboard
+- `autogitllm.model`
+- `autogitllm.apiKey`
+- `autogitllm.baseUrl`
+- `autogitllm.customRequestPath`
+- `autogitllm.extraHeaders`
+- `autogitllm.ruleTemplate`
+- `autogitllm.additionalRules`
 
 ## Environment Variables
 
@@ -70,10 +70,3 @@ If `autogitllm.apiKey` is empty, the extension checks:
 - `MOONSHOT_API_KEY`
 - `ZHIPU_API_KEY`
 - `AUTOGITLLM_API_KEY`
-
-## Notes
-
-- For `custom`, set `autogitllm.baseUrl` and a compatible `autogitllm.model`.
-- Gemini uses native `generateContent` API.
-- Other providers use OpenAI-compatible chat completions.
-- For very large repositories, increase `maxDiffBytes` cautiously to control latency/cost.

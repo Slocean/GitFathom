@@ -12,19 +12,30 @@
     "Other"
   ],
   "activationEvents": [
-    "onCommand:autogitllm.generateCommitMessage"
+    "onCommand:autogitllm.generateCommitMessage",
+    "onCommand:autogitllm.openSetup"
   ],
   "main": "./dist/extension.js",
   "contributes": {
     "commands": [
       {
         "command": "autogitllm.generateCommitMessage",
-        "title": "AI: Generate Commit Message",
+        "title": "AI 生成提交信息 / Generate Commit Message",
+        "category": "AutoGit LLM"
+      },
+      {
+        "command": "autogitllm.openSetup",
+        "title": "打开配置向导 / Open Setup Wizard",
         "category": "AutoGit LLM"
       }
     ],
     "menus": {
       "scm/title": [
+        {
+          "command": "autogitllm.openSetup",
+          "when": "scmProvider == git",
+          "group": "navigation@89"
+        },
         {
           "command": "autogitllm.generateCommitMessage",
           "when": "scmProvider == git",
@@ -35,6 +46,15 @@
     "configuration": {
       "title": "AutoGit LLM",
       "properties": {
+        "autogitllm.language": {
+          "type": "string",
+          "default": "zh",
+          "enum": [
+            "zh",
+            "en"
+          ],
+          "description": "UI language and commit-message language."
+        },
         "autogitllm.provider": {
           "type": "string",
           "default": "openai",
@@ -115,13 +135,13 @@
         },
         "autogitllm.systemPrompt": {
           "type": "string",
-          "default": "You are an expert software engineer who writes concise and high-quality git commit messages.",
-          "description": "System prompt to control generation style."
+          "default": "",
+          "description": "System prompt to control generation style. If empty, uses built-in language-specific default."
         },
         "autogitllm.ruleTemplate": {
           "type": "string",
-          "default": "Generate exactly one git commit message line using Conventional Commits format: <type>(optional-scope): <subject>. Keep it <= 72 characters, imperative mood, no trailing period, and output only the message.",
-          "description": "Main rule template for commit generation."
+          "default": "",
+          "description": "Main rule template for commit generation. If empty, uses built-in language-specific default."
         },
         "autogitllm.additionalRules": {
           "type": "string",
@@ -148,3 +168,4 @@
     "typescript": "^5.6.3"
   }
 }
+

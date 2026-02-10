@@ -2,17 +2,35 @@ import * as vscode from "vscode";
 import { generateCommitText } from "./ai";
 import { readConfig } from "./config";
 import { collectRepositoryChanges, getGitApi, pickRepository } from "./git";
+import { providerLabel, t } from "./i18n";
 import { buildPrompt } from "./prompt";
+import { openSetupWizard } from "./setupWizard";
+import { ExtensionConfig, UiLanguage } from "./types";
+
+interface SetupIssueAction {
+  kind: "setup" | "setting";
+  label: string;
+  setting?: string;
+}
+
+interface SetupIssue {
+  message: string;
+  actions: SetupIssueAction[];
+}
 
 export function activate(context: vscode.ExtensionContext): void {
-  const disposable = vscode.commands.registerCommand(
+  const generateDisposable = vscode.commands.registerCommand(
     "autogitllm.generateCommitMessage",
     async (scmContext?: unknown) => {
       await runGenerateCommitMessage(scmContext);
     }
   );
 
-  context.subscriptions.push(disposable);
+  const setupDisposable = vscode.commands.registerCommand("autogitllm.openSetup", async () => {
+    await runSetupWizard();
+  });
+
+  context.subscriptions.push(generateDisposable, setupDisposable);
 }
 
 export function deactivate(): void {
@@ -20,31 +38,38 @@ export function deactivate(): void {
 }
 
 async function runGenerateCommitMessage(scmContext?: unknown): Promise<void> {
+  const config = readConfig();
+
   try {
-    const config = readConfig();
+    const setupIssue = getSetupIssue(config);
+    if (setupIssue) {
+      await promptForSetup(config.language, setupIssue);
+      return;
+    }
+
     const gitApi = await getGitApi();
 
     if (!gitApi) {
-      vscode.window.showErrorMessage("Git extension is unavailable or disabled in VS Code.");
+      vscode.window.showErrorMessage(t(config.language, "gitUnavailable"));
       return;
     }
 
     const repository = pickRepository(gitApi.repositories, scmContext);
     if (!repository) {
-      vscode.window.showErrorMessage("No Git repository found in the current workspace.");
+      vscode.window.showErrorMessage(t(config.language, "noRepo"));
       return;
     }
 
     await vscode.window.withProgress(
       {
         location: vscode.ProgressLocation.Notification,
-        title: "AutoGit LLM: Generating commit message",
+        title: t(config.language, "progressTitle"),
         cancellable: false
       },
       async () => {
         const snapshot = await collectRepositoryChanges(repository.rootUri.fsPath, config);
         if (!snapshot.status.trim()) {
-          vscode.window.showInformationMessage("No changes detected in this repository.");
+          vscode.window.showInformationMessage(t(config.language, "noChanges"));
           return;
         }
 
@@ -57,11 +82,83 @@ async function runGenerateCommitMessage(scmContext?: unknown): Promise<void> {
           await vscode.env.clipboard.writeText(commitMessage);
         }
 
-        vscode.window.showInformationMessage("Commit message generated and filled into Source Control input.");
+        vscode.window.showInformationMessage(t(config.language, "generated"));
       }
     );
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
-    vscode.window.showErrorMessage(`AutoGit LLM failed: ${message}`);
+    vscode.window.showErrorMessage(`${t(config.language, "failedPrefix")}${message}`);
   }
+}
+
+async function runSetupWizard(): Promise<void> {
+  const before = readConfig().language;
+  const saved = await openSetupWizard(before);
+  const after = readConfig().language;
+
+  if (saved) {
+    vscode.window.showInformationMessage(t(after, "wizardSaved"));
+    return;
+  }
+
+  vscode.window.showInformationMessage(t(after, "wizardCancelled"));
+}
+
+function getSetupIssue(config: ExtensionConfig): SetupIssue | undefined {
+  const provider = providerLabel(config.language, config.provider);
+
+  if (config.provider === "custom" && !config.baseUrl.trim()) {
+    return {
+      message: t(config.language, "setupMissingBaseUrl", { provider }),
+      actions: [
+        { kind: "setup", label: t(config.language, "actionOpenSetup") },
+        { kind: "setting", label: t(config.language, "actionConfigureBaseUrl"), setting: "autogitllm.baseUrl" },
+        { kind: "setting", label: t(config.language, "actionConfigureProvider"), setting: "autogitllm.provider" }
+      ]
+    };
+  }
+
+  const hasCredential =
+    config.provider === "gemini"
+      ? Boolean(config.apiKey)
+      : Boolean(config.apiKey) || hasHeader(config.extraHeaders, "authorization") || hasHeader(config.extraHeaders, "x-api-key");
+
+  if (!hasCredential) {
+    return {
+      message: t(config.language, "setupMissingCredential", { provider }),
+      actions: [
+        { kind: "setup", label: t(config.language, "actionOpenSetup") },
+        { kind: "setting", label: t(config.language, "actionConfigureApiKey"), setting: "autogitllm.apiKey" },
+        { kind: "setting", label: t(config.language, "actionConfigureHeaders"), setting: "autogitllm.extraHeaders" }
+      ]
+    };
+  }
+
+  return undefined;
+}
+
+async function promptForSetup(language: UiLanguage, issue: SetupIssue): Promise<void> {
+  const selected = await vscode.window.showWarningMessage(issue.message, ...issue.actions.map((action) => action.label));
+  const target = issue.actions.find((action) => action.label === selected);
+
+  if (!target) {
+    return;
+  }
+
+  if (target.kind === "setup") {
+    await runSetupWizard();
+    return;
+  }
+
+  if (target.setting) {
+    await vscode.commands.executeCommand("workbench.action.openSettings", target.setting);
+    return;
+  }
+
+  await vscode.commands.executeCommand("workbench.action.openSettings", "autogitllm");
+}
+
+function hasHeader(headers: Record<string, string>, keyToFind: string): boolean {
+  const target = keyToFind.toLowerCase();
+  return Object.keys(headers).some((key) => key.toLowerCase() === target);
 }

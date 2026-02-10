@@ -1,6 +1,8 @@
 export type Provider = "openai" | "deepseek" | "gemini" | "kimi" | "glm" | "custom";
+export type UiLanguage = "zh" | "en";
 
 export interface ExtensionConfig {
+  language: UiLanguage;
   provider: Provider;
   model: string;
   apiKey: string;
