@@ -1,4 +1,4 @@
-# AutoGit LLM
+# GitFathom
 
 A lightweight VS Code extension that generates git commit messages from repository changes and places the message into the Source Control input box.
 
@@ -43,7 +43,7 @@ A lightweight VS Code extension that generates git commit messages from reposito
 
 ## Quick Start
 
-1. Press `F1` -> run `AutoGit LLM: Open Setup Wizard`.
+1. Press `F1` -> run `GitFathom: Open Setup Wizard`.
 2. Select language, provider, and model.
 3. Configure API key / base URL / headers if needed.
 4. Open a git repository, then click `AI: Generate Commit Message` in Source Control.

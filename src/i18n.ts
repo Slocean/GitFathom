@@ -39,10 +39,10 @@ const MESSAGES: Record<UiLanguage, Record<MessageKey, string>> = {
   zh: {
     gitUnavailable: "VS Code 的 Git 扩展不可用或已禁用。",
     noRepo: "当前工作区没有检测到 Git 仓库。",
-    progressTitle: "AutoGit LLM：正在生成提交信息",
+    progressTitle: "GitFathom：正在生成提交信息",
     noChanges: "当前仓库没有变更。",
     generated: "已生成提交信息并填入 Source Control 输入框。",
-    failedPrefix: "AutoGit LLM 执行失败：",
+    failedPrefix: "GitFathom 执行失败：",
     setupMissingBaseUrl: "{provider} 尚未配置完整，请先设置 autogitllm.baseUrl。",
     setupMissingCredential: "{provider} 缺少凭证，请先配置 autogitllm.apiKey（或在兼容厂商里用 autogitllm.extraHeaders）。",
     actionOpenSetup: "打开配置向导",
@@ -74,10 +74,10 @@ const MESSAGES: Record<UiLanguage, Record<MessageKey, string>> = {
   en: {
     gitUnavailable: "Git extension is unavailable or disabled in VS Code.",
     noRepo: "No Git repository found in the current workspace.",
-    progressTitle: "AutoGit LLM: Generating commit message",
+    progressTitle: "GitFathom: Generating commit message",
     noChanges: "No changes detected in this repository.",
     generated: "Commit message generated and filled into Source Control input.",
-    failedPrefix: "AutoGit LLM failed: ",
+    failedPrefix: "GitFathom failed: ",
     setupMissingBaseUrl: "{provider} is not fully configured. Please set autogitllm.baseUrl first.",
     setupMissingCredential:
       "{provider} credential is missing. Configure autogitllm.apiKey (or autogitllm.extraHeaders for compatible providers).",

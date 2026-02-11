@@ -1,6 +1,6 @@
 {
-  "name": "autogit-llm",
-  "displayName": "AutoGit LLM",
+  "name": "GitFathom",
+  "displayName": "GitFathom",
   "description": "Generate git commit messages from repository changes with configurable AI providers.",
   "version": "0.0.1",
   "publisher": "local",
@@ -21,12 +21,12 @@
       {
         "command": "autogitllm.generateCommitMessage",
         "title": "AI 生成提交信息 / Generate Commit Message",
-        "category": "AutoGit LLM"
+        "category": "GitFathom"
       },
       {
         "command": "autogitllm.openSetup",
         "title": "打开配置向导 / Open Setup Wizard",
-        "category": "AutoGit LLM"
+        "category": "GitFathom"
       }
     ],
     "menus": {
@@ -44,23 +44,29 @@
       ]
     },
     "configuration": {
-      "title": "AutoGit LLM",
+      "title": "GitFathom",
       "properties": {
         "autogitllm.language": {
           "type": "string",
+          "title": "语言",
           "default": "zh",
           "enum": [
             "zh",
             "en"
           ],
-          "enumDescriptions": [
+          "enumItemLabels": [
             "中文",
             "English"
           ],
-          "markdownDescription": "界面语言与提交信息语言。/ UI language and commit-message language."
+          "enumDescriptions": [
+            "简体中文",
+            "English"
+          ],
+          "markdownDescription": "界面语言与提交信息语言。"
         },
         "autogitllm.provider": {
           "type": "string",
+          "title": "AI 厂商",
           "default": "openai",
           "enum": [
             "openai",
@@ -70,92 +76,115 @@
             "glm",
             "custom"
           ],
-          "description": "AI provider. 'custom' uses OpenAI-compatible APIs."
+          "enumItemLabels": [
+            "OpenAI",
+            "DeepSeek",
+            "Gemini",
+            "Kimi（月之暗面）",
+            "GLM（智谱）",
+            "自定义兼容厂商"
+          ],
+          "markdownDescription": "AI 厂商选择（custom 使用 OpenAI 兼容接口）。"
         },
         "autogitllm.model": {
           "type": "string",
           "default": "",
-          "description": "Model name. If empty, a provider-specific default model is used."
+          "title": "模型名",
+          "markdownDescription": "模型名称，留空则使用厂商默认模型。"
         },
         "autogitllm.apiKey": {
           "type": "string",
           "default": "",
-          "markdownDescription": "API key for the selected provider. You can also use provider env vars (OPENAI_API_KEY, DEEPSEEK_API_KEY, GEMINI_API_KEY, MOONSHOT_API_KEY, ZHIPU_API_KEY) or AUTOGITLLM_API_KEY."
+          "title": "API Key",
+          "markdownDescription": "厂商 API Key，也可使用环境变量（OPENAI_API_KEY、DEEPSEEK_API_KEY、GEMINI_API_KEY、MOONSHOT_API_KEY、ZHIPU_API_KEY、AUTOGITLLM_API_KEY）。"
         },
         "autogitllm.baseUrl": {
           "type": "string",
           "default": "",
-          "description": "Optional custom base URL (supports third-party gateways/proxies)."
+          "title": "Base URL",
+          "markdownDescription": "自定义 Base URL（支持第三方网关或代理）。"
         },
         "autogitllm.customRequestPath": {
           "type": "string",
           "default": "/chat/completions",
-          "description": "Request path for custom/OpenAI-compatible providers."
+          "title": "请求路径",
+          "markdownDescription": "自定义/OpenAI 兼容厂商的请求路径。"
         },
         "autogitllm.extraHeaders": {
           "type": "string",
           "default": "{}",
-          "description": "Optional JSON object of extra HTTP headers, e.g. {\"X-Api-Key\":\"...\"}."
+          "title": "额外请求头",
+          "markdownDescription": "额外 HTTP 请求头的 JSON，例如 {\"X-Api-Key\":\"...\"}。"
         },
         "autogitllm.temperature": {
           "type": "number",
           "default": 0.2,
           "minimum": 0,
           "maximum": 2,
-          "description": "Sampling temperature for generation."
+          "title": "温度",
+          "markdownDescription": "生成采样温度。"
         },
         "autogitllm.maxTokens": {
           "type": "number",
           "default": 120,
           "minimum": 16,
           "maximum": 2048,
-          "description": "Maximum output tokens."
+          "title": "最大输出 Token",
+          "markdownDescription": "输出的最大 Token 数。"
         },
         "autogitllm.requestTimeoutMs": {
           "type": "number",
           "default": 25000,
           "minimum": 3000,
           "maximum": 120000,
-          "description": "HTTP request timeout in milliseconds."
+          "title": "请求超时（毫秒）",
+          "markdownDescription": "HTTP 请求超时（毫秒）。"
         },
         "autogitllm.commandTimeoutMs": {
           "type": "number",
           "default": 12000,
           "minimum": 3000,
           "maximum": 120000,
-          "description": "Timeout in milliseconds for git commands."
+          "title": "命令超时（毫秒）",
+          "markdownDescription": "Git 命令超时（毫秒）。"
         },
         "autogitllm.includeOnlyStaged": {
           "type": "boolean",
           "default": false,
-          "description": "If true, only staged changes are included."
+          "title": "仅包含暂存区",
+          "markdownDescription": "开启后仅包含暂存区变更。"
         },
         "autogitllm.maxDiffBytes": {
           "type": "number",
           "default": 120000,
           "minimum": 4096,
           "maximum": 2097152,
-          "description": "Max UTF-8 bytes from diff to send to the model."
+          "title": "Diff 最大字节数",
+          "markdownDescription": "发送给模型的 diff UTF-8 最大字节数。"
         },
         "autogitllm.systemPrompt": {
           "type": "string",
           "default": "",
-          "description": "System prompt to control generation style. If empty, uses built-in language-specific default."
+          "title": "系统提示词",
+          "markdownDescription": "控制生成风格的系统提示词，留空则使用内置默认值。"
         },
         "autogitllm.ruleTemplate": {
           "type": "string",
           "default": "",
-          "description": "Main rule template for commit generation. If empty, uses built-in language-specific default."
+          "title": "规则模板",
+          "markdownDescription": "提交信息生成的主规则模板，留空则使用内置默认值。"
         },
         "autogitllm.additionalRules": {
           "type": "string",
           "default": "",
-          "description": "Optional extra instructions appended to the rule template."
+          "title": "附加规则",
+          "markdownDescription": "附加到规则模板后的额外指令。"
         },
         "autogitllm.copyToClipboard": {
           "type": "boolean",
           "default": false,
-          "description": "Also copy generated commit message to clipboard."
+          "title": "复制到剪贴板",
+          "markdownDescription": "生成后同时复制到剪贴板。"
         }
       }
     }
@@ -172,4 +201,3 @@
     "typescript": "^5.6.3"
   }
 }
-
