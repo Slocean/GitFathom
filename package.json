@@ -22,7 +22,11 @@
       {
         "command": "autogitllm.generateCommitMessage",
         "title": "AI 生成提交信息 / Generate Commit Message",
-        "category": "GitFathom"
+        "category": "GitFathom",
+        "icon": {
+          "light": "src/img/btn.png",
+          "dark": "src/img/btn.png"
+        }
       },
       {
         "command": "autogitllm.openSetup",
