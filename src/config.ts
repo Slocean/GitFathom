@@ -39,6 +39,8 @@ const DEFAULT_PROMPTS: Record<UiLanguage, { system: string; rule: string }> = {
         【规则】
         - 使用 Conventional Commits 规范
         - subject 必须存在且有意义
+        - subject 必须体现“动作 + 具体对象/模块”，避免“添加/修改/更新”等泛化表述
+        - 优先在 scope 或 subject 中体现文件名、目录名或功能点关键词
         - emoji 只放在 subject 开头且与 type 语义一致
         - 语言：简体中文
         - 不要输出多余解释
@@ -68,6 +70,8 @@ const DEFAULT_PROMPTS: Record<UiLanguage, { system: string; rule: string }> = {
         [Rules]
         - Follow Conventional Commits
         - Subject must be non-empty and meaningful
+        - Subject must contain action + concrete object/module, avoid generic words like "update" or "changes"
+        - Prefer including a file/module/feature keyword in scope or subject
         - Emoji only at the end of subject and must match the type
         - Language: English
         - No extra explanations
@@ -207,3 +211,4 @@ function ensureLeadingSlash(value: string): string {
 function stripTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, '');
 }
+

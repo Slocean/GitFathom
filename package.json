@@ -2,13 +2,18 @@
   "name": "gitgathom",
   "displayName": "GitFathom",
   "description": "Generate git commit messages from repository changes with configurable AI providers.",
-  "version": "0.2.1",
+  "version": "0.3.1",
   "publisher": "slocean",
+  "license": "UNLICENSED",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Slocean/AutoGitLLM.git"
+  },
   "engines": {
     "vscode": "^1.90.0"
   },
   "categories": [
-    "SCM",
+    "SCM Providers",
     "Other"
   ],
   "activationEvents": [
@@ -24,7 +29,7 @@
         "title": "AI 生成提交信息 / Generate Commit Message",
         "category": "GitFathom",
         "icon": {
-          "light": "src/img/dark_btn.png",
+          "light": "src/img/dark-btn.png",
           "dark": "src/img/light_btn.png"
         }
       },

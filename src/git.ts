@@ -1,4 +1,6 @@
 import { execFile } from "node:child_process";
+import { promises as fs } from "node:fs";
+import { join } from "node:path";
 import * as vscode from "vscode";
 import { ChangeSnapshot, ExtensionConfig } from "./types";
 
@@ -17,6 +19,9 @@ export interface GitRepository {
     value: string;
   };
 }
+
+const MAX_UNTRACKED_FILES = 12;
+const MAX_UNTRACKED_FILE_PREVIEW_BYTES = 4096;
 
 export async function getGitApi(): Promise<GitAPI | undefined> {
   const extension = vscode.extensions.getExtension<GitExtension>("vscode.git");
@@ -74,6 +79,19 @@ export async function collectRepositoryChanges(
     if (unstaged.trim()) {
       diffParts.push("# Unstaged changes", unstaged);
     }
+
+    const untrackedRaw = await runGit(
+      ["ls-files", "--others", "--exclude-standard"],
+      repositoryPath,
+      config.commandTimeoutMs
+    );
+    const untrackedFiles = parseLines(untrackedRaw);
+    if (untrackedFiles.length > 0) {
+      const untrackedPreview = await buildUntrackedFilePreview(untrackedFiles, repositoryPath);
+      if (untrackedPreview.trim()) {
+        diffParts.push("# Untracked file previews", untrackedPreview);
+      }
+    }
   }
 
   const merged = diffParts.join("\n\n");
@@ -107,6 +125,95 @@ function runGit(args: string[], cwd: string, timeoutMs: number): Promise<string>
       }
     );
   });
+}
+
+function parseLines(value: string): string[] {
+  return value
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter((line) => line.length > 0);
+}
+
+async function buildUntrackedFilePreview(filePaths: string[], repositoryPath: string): Promise<string> {
+  const sections: string[] = [];
+  const limited = filePaths.slice(0, MAX_UNTRACKED_FILES);
+
+  for (const relativePath of limited) {
+    const absolutePath = join(repositoryPath, relativePath);
+
+    try {
+      const preview = await readTextPreview(absolutePath);
+      sections.push(`## ${relativePath}\n${preview}`);
+    } catch (error) {
+      const reason = error instanceof Error ? error.message : String(error);
+      sections.push(`## ${relativePath}\n[Preview unavailable: ${reason}]`);
+    }
+  }
+
+  if (filePaths.length > limited.length) {
+    sections.push(
+      `[Only first ${limited.length} untracked files are included out of ${filePaths.length} total untracked files]`
+    );
+  }
+
+  return sections.join("\n\n");
+}
+
+async function readTextPreview(filePath: string): Promise<string> {
+  const stat = await fs.stat(filePath);
+  if (!stat.isFile()) {
+    return "[Skipped non-regular file]";
+  }
+
+  const bytesToRead = Math.min(Number(stat.size), MAX_UNTRACKED_FILE_PREVIEW_BYTES);
+  const fileHandle = await fs.open(filePath, "r");
+  const buffer = Buffer.alloc(bytesToRead);
+
+  try {
+    if (bytesToRead > 0) {
+      await fileHandle.read(buffer, 0, bytesToRead, 0);
+    }
+  } finally {
+    await fileHandle.close();
+  }
+
+  if (looksBinary(buffer)) {
+    return "[Skipped binary file]";
+  }
+
+  const text = buffer.toString("utf8").trim();
+  if (!text) {
+    return "[Empty text file]";
+  }
+
+  if (Number(stat.size) > bytesToRead) {
+    return `${text}\n[File preview truncated]`;
+  }
+
+  return text;
+}
+
+function looksBinary(buffer: Buffer): boolean {
+  if (buffer.length === 0) {
+    return false;
+  }
+
+  if (buffer.includes(0)) {
+    return true;
+  }
+
+  const sampleSize = Math.min(buffer.length, 1024);
+  let nonTextCount = 0;
+
+  for (let i = 0; i < sampleSize; i += 1) {
+    const byte = buffer[i];
+    const isControl = byte < 32 && byte !== 9 && byte !== 10 && byte !== 13;
+    if (isControl) {
+      nonTextCount += 1;
+    }
+  }
+
+  return nonTextCount / sampleSize > 0.1;
 }
 
 function trimUtf8(text: string, maxBytes: number): { text: string; truncated: boolean } {
