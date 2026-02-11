@@ -183,6 +183,7 @@ function createOpenAiEndpoint(baseUrl: string, customPath: string): string {
   return `${normalizedBase}${customPath.startsWith('/') ? customPath : `/${customPath}`}`;
 }
 
+
 function sanitizeCommitText(raw: string): string {
   const withoutCodeFence = raw
     .replace(/^```[a-zA-Z]*\s*/m, '')
@@ -195,21 +196,44 @@ function sanitizeCommitText(raw: string): string {
       .map(line => line.trim())
       .find(line => line.length > 0) ?? '';
 
-  const noSurroundingQuotes = firstLine.replace(/^['\"]+|['\"]+$/g, '').trim();
+  const noSurroundingQuotes = firstLine.replace(/^['"]+|['"]+$/g, '').trim();
+  const normalized = normalizeCommitLine(noSurroundingQuotes);
 
-  if (!noSurroundingQuotes) {
+  if (!normalized) {
     throw new Error('Generated commit message is empty.');
   }
 
-  if (!isValidCommitLine(noSurroundingQuotes)) {
+  if (!isValidCommitLine(normalized)) {
     throw new Error('Generated commit message is invalid or missing subject.');
   }
 
-  return noSurroundingQuotes;
+  return normalized;
+}
+
+function normalizeCommitLine(value: string): string {
+  const strippedBullet = value.replace(/^[-*]\s+/, '').trim();
+  const normalizedColon = strippedBullet.replace(/\uFF1A/g, ':');
+  const collapsedPrefix = normalizedColon.replace(
+    /^([a-zA-Z]+(?:\([^)]+\))?!?)\s*:\s*/,
+    '$1: '
+  );
+
+  return collapsedPrefix.trim();
 }
 
 function isValidCommitLine(value: string): boolean {
-  return /^[a-zA-Z]+(\([^)]+\))?:\s+\S+/.test(value);
+  const match = value.match(/^([a-zA-Z]+(?:\([^)]+\))?!?):\s*(.+)$/);
+  if (!match) {
+    return false;
+  }
+
+  const subject = match[2].trim();
+  if (!subject) {
+    return false;
+  }
+
+  // Reject emoji-only or punctuation-only subjects such as "feat: ?".
+  return /[\p{L}\p{N}]/u.test(subject);
 }
 
 function hasHeader(headers: Record<string, string>, keyToFind: string): boolean {
