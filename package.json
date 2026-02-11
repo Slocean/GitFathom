@@ -24,8 +24,8 @@
         "title": "AI 生成提交信息 / Generate Commit Message",
         "category": "GitFathom",
         "icon": {
-          "light": "src/img/btn.png",
-          "dark": "src/img/btn.png"
+          "light": "src/img/light_btn.png",
+          "dark": "src/img/dark-btn.png"
         }
       },
       {
@@ -40,7 +40,10 @@
           "command": "autogitllm.generateCommitMessage",
           "when": "scmProvider == git",
           "group": "navigation@90",
-          "icon": "src/img/btn.png"
+          "icon": {
+            "light": "src/img/light_btn.png",
+            "dark": "src/img/dark-btn.png"
+          }
         }
       ]
     },
