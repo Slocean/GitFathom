@@ -1,6 +1,8 @@
 .vscode/**
 .vscode-test/**
 src/**
+!src/img/
+!src/img/**
 .gitignore
 tsconfig.json
 vsc-extension-quickstart.md
