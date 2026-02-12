@@ -13,7 +13,7 @@ export function buildPrompt(snapshot: ChangeSnapshot, config: ExtensionConfig): 
   if (config.language === 'zh') {
     sections.push('语言要求：输出必须为简体中文。');
     sections.push(
-      '输出约束:\n- 只输出一行\n- 不要使用 markdown\n- 不要加引号\n- 冒号后必须有主题内容\n- 主题必须具体，不能只写“添加/修改/更新”等泛化词'
+      '输出约束:\n- 不要使用 markdown\n- 不要加引号\n- 冒号后必须有主题内容\n- 主题必须具体，不能只写“添加/修改/更新”等泛化词'
     );
   } else {
     sections.push('Language requirement: Output must be in English.');

@@ -19,6 +19,7 @@ export interface ExtensionConfig {
   ruleTemplate: string;
   additionalRules: string;
   copyToClipboard: boolean;
+  debugView: boolean;
 }
 
 export interface ChangeSnapshot {
@@ -30,4 +31,24 @@ export interface ChangeSnapshot {
 export interface PromptPayload {
   systemPrompt: string;
   userPrompt: string;
+}
+
+export interface AiDebugSnapshot {
+  createdAt: string;
+  provider: Provider;
+  model: string;
+  endpoint: string;
+  requestHeaders: Record<string, string>;
+  requestBody: Record<string, unknown>;
+  responseStatus?: number;
+  responseHeaders?: Record<string, string>;
+  responseBody?: string;
+  extractedText?: string;
+  normalizedCommitMessage?: string;
+  error?: string;
+}
+
+export interface GenerateCommitResult {
+  commitMessage: string;
+  debug: AiDebugSnapshot;
 }

@@ -48,6 +48,13 @@
 - `gitgathom.ruleTemplate`
 - `gitgathom.additionalRules`
 - `gitgathom.copyToClipboard`
+- `gitgathom.debugView`
+
+## AI 调试可视化
+
+- 开启 `gitgathom.debugView` 后，每次生成都会自动打开一份调试文档
+- 文档包含：发送给 AI 的 system/user prompt、请求头/请求体、AI 原始响应、解析结果
+- 同时提供命令 `GitFathom: Show Last AI Debug Report`，可随时再次查看最近一次报告
 
 ## 环境变量
 

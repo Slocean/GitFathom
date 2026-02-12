@@ -2,7 +2,7 @@
   "name": "gitgathom",
   "displayName": "GitFathom",
   "description": "Generate git commit messages from repository changes with configurable AI providers.",
-  "version": "0.3.2",
+  "version": "0.3.7",
   "publisher": "slocean",
   "license": "UNLICENSED",
   "repository": {
@@ -18,7 +18,8 @@
   ],
   "activationEvents": [
     "onCommand:gitgathom.generateCommitMessage",
-    "onCommand:gitgathom.openSetup"
+    "onCommand:gitgathom.openSetup",
+    "onCommand:gitgathom.showLastDebugReport"
   ],
   "main": "./dist/extension.js",
   "icon": "src/img/icon.png",
@@ -36,6 +37,11 @@
       {
         "command": "gitgathom.openSetup",
         "title": "打开配置向导 / Open Setup Wizard",
+        "category": "GitFathom"
+      },
+      {
+        "command": "gitgathom.showLastDebugReport",
+        "title": "显示最近 AI 调试报告 / Show Last AI Debug Report",
         "category": "GitFathom"
       }
     ],
@@ -194,6 +200,12 @@
           "default": false,
           "title": "复制到剪贴板",
           "markdownDescription": "生成后同时复制到剪贴板。"
+        },
+        "gitgathom.debugView": {
+          "type": "boolean",
+          "default": false,
+          "title": "AI 调试可视化",
+          "markdownDescription": "开启后生成提交信息会自动打开调试文档，展示 AI 输入与回复（已脱敏）。"
         }
       }
     }

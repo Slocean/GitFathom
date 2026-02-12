@@ -31,32 +31,50 @@ const DEFAULT_PROMPTS: Record<UiLanguage, { system: string; rule: string }> = {
   zh: {
     system: `你是一个资深软件工程师，擅长编写高质量 Git Commit Message。`,
     rule: `
-        请根据「代码改动描述」生成规范提交信息，要求：
+            # Git 提交消息规范指南
+            提交消息必须遵循 Conventional Commits 规范，并结合 gitmoji。
 
-        【格式】
-        <type>(可选scope):<emoji> <subject> 
+            ## 1. 格式要求
+            <gitmoji> <type>(<scope>): <subject>
+            <body>
+            <footer>
+            ## 2\. 字段说明
+            ### 📌 gitmoji (必填)
+            根据提交类型添加一个合适的 gitmoji。例如：
+              - ✨ 'feat'
+              - 🐛 'fix'
+              - 📝 'docs'
+              - 🎨 'style'
+              - ♻️ 'refactor'
+              - ✅ 'test'
+              - 🔧 'chore'
+            ### 📌 type (必填)
 
-        【规则】
-        - 使用 Conventional Commits 规范
-        - subject 必须存在且有意义
-        - subject 必须体现“动作 + 具体对象/模块”，避免“添加/修改/更新”等泛化表述
-        - 优先在 scope 或 subject 中体现文件名、目录名或功能点关键词
-        - emoji 只放在 subject 开头且与 type 语义一致
-        - 语言：简体中文
-        - 不要输出多余解释
-        - 总长度不超过72字符
+            必须是以下类型之一：
+              - 'feat': 新功能
+              - 'fix': Bug 修复
+              - 'docs': 文档变更
+              - 'style': 代码格式（不影响逻辑的变动）
+              - 'refactor': 重构（既不修复错误也不添加功能）
+              - 'test': 测试代码
+              - 'chore': 构建/依赖变更
 
-        【type 参考】
-        - feat ✨ 新功能
-        - fix 🐛 修复 bug
-        - refactor ♻️ 重构
-        - perf ⚡ 性能优化
-        - docs 📝 文档
-        - style 💄 代码格式
-        - test ✅ 测试
-        - chore 🔧 构建/工具
-        - ci 👷 CI/CD
-        - revert ⏪ 回滚
+            ### 📌 scope (必填)
+            影响范围，描述此次修改对项目具体模块产生的作用。
+            ### 📌 subject (必填)
+              - **语言**: 使用中文生成消息。
+              - **时态**: 动词使用过去式 (如 fixed, added)。
+              - **限制**: 100 字符以内，详细的同时提取重点。
+
+            ### 📌 body (必填)
+            详细说明具体更改的内容及原因，可以进行换行。
+
+            ### 📌 footer (必填)
+            关联相关的 issue (如 'Closes #123') 或标注 'BREAKING CHANGE'。
+            ## 3\. 示例
+            ✨ feat(auth): added oauth2 登录支持
+                            -实现谷歌 OAuth2 集成
+                            -添加登录页面 UI 组件
     `
   },
   en: {
@@ -118,7 +136,8 @@ export function readConfig(): ExtensionConfig {
     systemPrompt: rawSystemPrompt || DEFAULT_PROMPTS[language].system,
     ruleTemplate: rawRuleTemplate || DEFAULT_PROMPTS[language].rule,
     additionalRules: getConfigValue<string>(cfg, 'additionalRules', ''),
-    copyToClipboard: getConfigValue<boolean>(cfg, 'copyToClipboard', false)
+    copyToClipboard: getConfigValue<boolean>(cfg, 'copyToClipboard', false),
+    debugView: getConfigValue<boolean>(cfg, 'debugView', false)
   };
 }
 
@@ -211,4 +230,3 @@ function ensureLeadingSlash(value: string): string {
 function stripTrailingSlashes(value: string): string {
   return value.replace(/\/+$/, '');
 }
-

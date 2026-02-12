@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
-import { generateCommitText } from './ai';
+import { AiRequestError, generateCommitText } from './ai';
 import { readConfig } from './config';
 import { collectRepositoryChanges, getGitApi, pickRepository } from './git';
 import { providerLabel, t } from './i18n';
 import { buildPrompt } from './prompt';
 import { openSetupWizard } from './setupWizard';
-import { ExtensionConfig, UiLanguage } from './types';
+import { AiDebugSnapshot, ExtensionConfig, GenerateCommitResult, PromptPayload, UiLanguage } from './types';
 
 interface SetupIssueAction {
   kind: 'setup' | 'setting';
@@ -17,6 +17,13 @@ interface SetupIssue {
   message: string;
   actions: SetupIssueAction[];
 }
+
+interface LastDebugState {
+  prompt: PromptPayload;
+  snapshot: AiDebugSnapshot;
+}
+
+let lastDebugState: LastDebugState | undefined;
 
 export function activate(context: vscode.ExtensionContext): void {
   const generateDisposable = vscode.commands.registerCommand(
@@ -30,7 +37,11 @@ export function activate(context: vscode.ExtensionContext): void {
     await runSetupWizard();
   });
 
-  context.subscriptions.push(generateDisposable, setupDisposable);
+  const debugDisposable = vscode.commands.registerCommand('gitgathom.showLastDebugReport', async () => {
+    await showLastDebugReport();
+  });
+
+  context.subscriptions.push(generateDisposable, setupDisposable, debugDisposable);
 }
 
 export function deactivate(): void {
@@ -74,12 +85,43 @@ async function runGenerateCommitMessage(scmContext?: unknown): Promise<void> {
         }
 
         const prompt = buildPrompt(snapshot, config);
-        const commitMessage = await generateCommitText(prompt, config);
+        let result: GenerateCommitResult;
+
+        try {
+          result = await generateCommitText(prompt, config);
+        } catch (error) {
+          if (error instanceof AiRequestError) {
+            lastDebugState = {
+              prompt,
+              snapshot: error.debug
+            };
+
+            if (config.debugView) {
+              await openDebugDocument(lastDebugState);
+            }
+          }
+
+          throw error;
+        }
+
+        const commitMessage = result.commitMessage;
+
+        lastDebugState = {
+          prompt,
+          snapshot: result.debug
+        };
 
         repository.inputBox.value = commitMessage;
 
         if (config.copyToClipboard) {
           await vscode.env.clipboard.writeText(commitMessage);
+        }
+
+        if (config.debugView) {
+          await openDebugDocument({
+            prompt,
+            snapshot: result.debug
+          });
         }
 
         vscode.window.showInformationMessage(t(config.language, 'generated'));
@@ -89,6 +131,94 @@ async function runGenerateCommitMessage(scmContext?: unknown): Promise<void> {
     const message = error instanceof Error ? error.message : String(error);
     vscode.window.showErrorMessage(`${t(config.language, 'failedPrefix')}${message}`);
   }
+}
+
+async function showLastDebugReport(): Promise<void> {
+  if (!lastDebugState) {
+    vscode.window.showInformationMessage('No AI debug report yet. Generate a commit message first.');
+    return;
+  }
+
+  await openDebugDocument(lastDebugState);
+}
+
+async function openDebugDocument(state: LastDebugState): Promise<void> {
+  const content = renderDebugReport(state);
+  const document = await vscode.workspace.openTextDocument({
+    language: 'markdown',
+    content
+  });
+
+  await vscode.window.showTextDocument(document, {
+    preview: false,
+    preserveFocus: false
+  });
+}
+
+function renderDebugReport(state: LastDebugState): string {
+  const lines: string[] = [];
+  const { prompt, snapshot } = state;
+
+  lines.push('# GitFathom AI Debug Report');
+  lines.push('');
+  lines.push(`- Time: ${snapshot.createdAt}`);
+  lines.push(`- Provider: ${snapshot.provider}`);
+  lines.push(`- Model: ${snapshot.model}`);
+  lines.push(`- Endpoint: ${snapshot.endpoint}`);
+  lines.push(`- HTTP Status: ${snapshot.responseStatus ?? '(no response)'}`);
+  lines.push('');
+  lines.push('## Prompt Input');
+  lines.push('### systemPrompt');
+  lines.push('```text');
+  lines.push(prompt.systemPrompt || '(empty)');
+  lines.push('```');
+  lines.push('');
+  lines.push('### userPrompt');
+  lines.push('```text');
+  lines.push(prompt.userPrompt || '(empty)');
+  lines.push('```');
+  lines.push('');
+  lines.push('## Request');
+  lines.push('### Headers');
+  lines.push('```json');
+  lines.push(JSON.stringify(snapshot.requestHeaders ?? {}, null, 2));
+  lines.push('```');
+  lines.push('');
+  lines.push('### Body');
+  lines.push('```json');
+  lines.push(JSON.stringify(snapshot.requestBody ?? {}, null, 2));
+  lines.push('```');
+  lines.push('');
+  lines.push('## Response');
+  lines.push('### Headers');
+  lines.push('```json');
+  lines.push(JSON.stringify(snapshot.responseHeaders ?? {}, null, 2));
+  lines.push('```');
+  lines.push('');
+  lines.push('### Raw Body');
+  lines.push('```json');
+  lines.push(snapshot.responseBody || '(empty)');
+  lines.push('```');
+  lines.push('');
+  lines.push('### Extracted Text');
+  lines.push('```text');
+  lines.push(snapshot.extractedText || '(empty)');
+  lines.push('```');
+  lines.push('');
+  lines.push('### Final Commit Message');
+  lines.push('```text');
+  lines.push(snapshot.normalizedCommitMessage || '(not produced)');
+  lines.push('```');
+
+  if (snapshot.error) {
+    lines.push('');
+    lines.push('### Error');
+    lines.push('```text');
+    lines.push(snapshot.error);
+    lines.push('```');
+  }
+
+  return lines.join('\n');
 }
 
 async function runSetupWizard(): Promise<void> {
