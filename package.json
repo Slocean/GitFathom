@@ -2,7 +2,7 @@
   "name": "gitgathom",
   "displayName": "GitFathom",
   "description": "Generate git commit messages from repository changes with configurable AI providers.",
-  "version": "0.5.2",
+  "version": "0.5.3",
   "publisher": "slocean",
   "license": "UNLICENSED",
   "repository": {
