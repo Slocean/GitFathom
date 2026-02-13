@@ -11,6 +11,8 @@
 - 支持 OpenAI / DeepSeek / Gemini / Kimi / GLM / 自定义兼容厂商
 - 支持自定义 Base URL、请求路径、额外请求头
 - 中英双语 UI 与提交信息输出
+- 支持仅暂存区生成、可选详细/简洁输出
+- 可选复制到剪贴板，内置 AI 调试报告视图
 - 性能友好：限制 diff 大小、控制超时、无后台轮询
 
 ## 安装与调试
@@ -47,12 +49,18 @@
 - `gitgathom.baseUrl`
 - `gitgathom.customRequestPath`（OpenAI 默认 `/chat/completions`，其它厂商默认空）
 - `gitgathom.extraHeaders`
+- `gitgathom.systemPrompt`
 - `gitgathom.ruleTemplate`
 - `gitgathom.additionalRules`
+- `gitgathom.detailedOutput`
+- `gitgathom.includeOnlyStaged`
 - `gitgathom.maxChangedFiles`
 - `gitgathom.truncateDiff`
 - `gitgathom.maxDiffBytes`（仅在 `truncateDiff=true` 时生效）
+- `gitgathom.temperature`
 - `gitgathom.maxTokens`（可设为 `null` 表示不限制）
+- `gitgathom.requestTimeoutMs`
+- `gitgathom.commandTimeoutMs`
 - `gitgathom.copyToClipboard`
 - `gitgathom.debugView`
 
@@ -86,6 +94,8 @@ GitFathom is a VS Code extension that generates high-quality Git commit messages
 - Providers: OpenAI / DeepSeek / Gemini / Kimi / GLM / Custom OpenAI-compatible
 - Custom Base URL, request path, and extra headers
 - Bilingual UI and output (zh/en)
+- Optional staged-only input and detailed/concise output modes
+- Optional clipboard copy with AI debug report view
 - Performance-friendly defaults: bounded diff size, timeouts, no background polling
 
 ## Setup
@@ -120,13 +130,26 @@ GitFathom is a VS Code extension that generates high-quality Git commit messages
 - `gitgathom.baseUrl`
 - `gitgathom.customRequestPath` (OpenAI defaults to `/chat/completions`; others default to empty)
 - `gitgathom.extraHeaders`
+- `gitgathom.systemPrompt`
 - `gitgathom.ruleTemplate`
 - `gitgathom.additionalRules`
+- `gitgathom.detailedOutput`
+- `gitgathom.includeOnlyStaged`
 - `gitgathom.maxChangedFiles`
 - `gitgathom.truncateDiff`
 - `gitgathom.maxDiffBytes` (only works when `truncateDiff=true`)
+- `gitgathom.temperature`
 - `gitgathom.maxTokens` (`null` means no explicit limit)
+- `gitgathom.requestTimeoutMs`
+- `gitgathom.commandTimeoutMs`
 - `gitgathom.copyToClipboard`
+- `gitgathom.debugView`
+
+## AI Debug View
+
+- When `gitgathom.debugView` is enabled, each generation opens a debug document
+- The document includes system/user prompts, request headers/body, raw response, and parsed output
+- Command `GitFathom: Show Last AI Debug Report` re-opens the latest report
 
 ## Environment Variables
 
