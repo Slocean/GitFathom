@@ -2,7 +2,7 @@
   "name": "gitgathom",
   "displayName": "GitFathom",
   "description": "Generate git commit messages from repository changes with configurable AI providers.",
-  "version": "0.5.1",
+  "version": "0.5.2",
   "publisher": "slocean",
   "license": "UNLICENSED",
   "repository": {
@@ -211,6 +211,12 @@
           "default": "",
           "title": "附加规则",
           "markdownDescription": "附加到规则模板后的额外指令。"
+        },
+        "gitgathom.detailedOutput": {
+          "type": "boolean",
+          "default": true,
+          "title": "详细输出",
+          "markdownDescription": "开启后使用详细输出规则；关闭后每条改动只输出一句话概括。"
         },
         "gitgathom.copyToClipboard": {
           "type": "boolean",

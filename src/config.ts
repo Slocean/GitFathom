@@ -171,6 +171,7 @@ export function readConfig(): ExtensionConfig {
     systemPrompt: rawSystemPrompt || DEFAULT_PROMPTS[language].system,
     ruleTemplate: rawRuleTemplate || DEFAULT_PROMPTS[language].rule,
     additionalRules: getConfigValue<string>(cfg, 'additionalRules', ''),
+    detailedOutput: getConfigValue<boolean>(cfg, 'detailedOutput', true),
     copyToClipboard: getConfigValue<boolean>(cfg, 'copyToClipboard', false),
     debugView: getConfigValue<boolean>(cfg, 'debugView', false)
   };

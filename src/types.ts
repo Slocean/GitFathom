@@ -20,6 +20,7 @@ export interface ExtensionConfig {
   systemPrompt: string;
   ruleTemplate: string;
   additionalRules: string;
+  detailedOutput: boolean;
   copyToClipboard: boolean;
   debugView: boolean;
 }
